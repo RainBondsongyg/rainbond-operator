@@ -130,6 +130,8 @@ func (a *appui) ResourcesCreateIfNotExists() []client.Object {
 func (a *appui) deploymentForAppUI() client.Object {
 	cpt := a.component
 	envs := []corev1.EnvVar{
+		{Name: "POD_NAME", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.name"}}},
+		{Name: "POD_UID", ValueFrom: &corev1.EnvVarSource{FieldRef: &corev1.ObjectFieldSelector{FieldPath: "metadata.uid"}}},
 		{
 			Name:  "RBD_NAMESPACE",
 			Value: a.component.Namespace,

@@ -46,6 +46,18 @@ func findEnv(envs []corev1.EnvVar, name string) (corev1.EnvVar, bool) {
 	return corev1.EnvVar{}, false
 }
 
+func TestAppUIDeploymentExposesItsPodIdentityForAutomaticInstallation(t *testing.T) {
+	t.Setenv("IS_SQLLITE", "true")
+	handler := newAppUIHandlerForTest(nil)
+	deployment := handler.deploymentForAppUI().(*appsv1.Deployment)
+	for name, field := range map[string]string{"POD_NAME": "metadata.name", "POD_UID": "metadata.uid"} {
+		env, exists := findEnv(deployment.Spec.Template.Spec.Containers[0].Env, name)
+		if !exists || env.ValueFrom == nil || env.ValueFrom.FieldRef == nil || env.ValueFrom.FieldRef.FieldPath != field {
+			t.Fatal("Console cannot prove its hosting cluster during plugin installation", name)
+		}
+	}
+}
+
 func TestAppUIDeploymentDisablesDefaultMarketForOfflineInstall(t *testing.T) {
 	t.Setenv("IS_SQLLITE", "true")
 
